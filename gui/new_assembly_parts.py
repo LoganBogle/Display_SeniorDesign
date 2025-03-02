@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QListWidget, QLineEdit, QCheckBox, QHBoxLayout, QComboBox
+from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QListWidget, QLineEdit, QCheckBox, QHBoxLayout, QComboBox, QListWidgetItem
 from database.db_manager import get_all_components, add_component, add_assembly
 from PyQt5.QtCore import Qt
 from gui.virtual_keyboard import VirtualKeyboard
@@ -14,27 +14,30 @@ class NewAssemblyStep2(QWidget):
         self.setLayout(self.main_layout)
 
         title_label = QLabel(f"Select {num_parts} components for the assembly:")
-        title_label.setStyleSheet("font-size: 22px; font-weight: bold; text-align: center;")
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold; text-align: center;")
         self.main_layout.addWidget(title_label, alignment=Qt.AlignCenter)
 
         self.component_list = QListWidget()
         self.component_list.setSelectionMode(QListWidget.MultiSelection)
-        self.component_list.setStyleSheet("background-color: #3B4252; color: white; border-radius: 5px; padding: 5px;")
+        self.component_list.setStyleSheet("background-color: #3B4252; color: white; border-radius: 5px; padding: 5px; font-size: 18px;")
         self.load_components()
         self.main_layout.addWidget(self.component_list)
 
         button_layout = QHBoxLayout()
         create_button = QPushButton("Create New Component")
-        create_button.setStyleSheet("background-color: #A3BE8C; color: white; font-size: 16px; border-radius: 10px;")
+        create_button.setFixedSize(250, 100)
+        create_button.setStyleSheet("background-color: #A3BE8C; color: white; font-size: 20px; border-radius: 10px;")
         create_button.clicked.connect(self.show_create_component_form)
 
         self.next_button = QPushButton("Next")
+        self.next_button.setFixedSize(250, 100)
         self.next_button.setEnabled(False)
-        self.next_button.setStyleSheet("background-color: #5E81AC; color: white; font-size: 16px; border-radius: 10px;")
+        self.next_button.setStyleSheet("background-color: #5E81AC; color: white; font-size: 20px; border-radius: 10px;")
         self.next_button.clicked.connect(self.go_to_confirmation)
 
         back_button = QPushButton("Back")
-        back_button.setStyleSheet("background-color: #BF616A; color: white; font-size: 16px; border-radius: 10px;")
+        back_button.setFixedSize(250, 100)
+        back_button.setStyleSheet("background-color: #BF616A; color: white; font-size: 20px; border-radius: 10px;")
         back_button.clicked.connect(lambda: main_window.set_screen(2))
 
         button_layout.addWidget(create_button)
@@ -47,10 +50,19 @@ class NewAssemblyStep2(QWidget):
 
     def load_components(self):
         self.component_list.clear()
-        components = get_all_components()
+        components = get_all_components()  # Fetch components from the database
+        
         for comp in components:
-            item_text = f"{comp[1]}"  
-            self.component_list.addItem(item_text)
+            item_text = f"{comp[1]}"  # Only display the name
+            item = QListWidgetItem(item_text)
+            
+            # Store camera job status correctly in Qt.UserRole
+            item.setData(Qt.UserRole, (comp[2], comp[3], comp[4]))  # (Tray 1, Tray 2, Tray 3)
+            
+            self.component_list.addItem(item)
+    
+    def show_create_component_form(self):
+        self.main_layout.addWidget(CreateComponentForm(self))
 
     def check_selection(self):
         if len(self.component_list.selectedItems()) == self.num_parts:
@@ -65,11 +77,11 @@ class NewAssemblyStep2(QWidget):
         self.main_window.set_screen(self.main_window.stack.indexOf(self.main_window.new_assembly_confirm))
 
     def apply_styles(self):
-        self.setStyleSheet("""
-            QWidget {background-color: #2E3440; color: #D8DEE9; font-size: 18px; font-family: Arial, sans-serif;}
-            QPushButton:hover {background-color: #81A1C1;}
-            QLabel {font-size: 20px; font-weight: bold;}
-        """)
+        self.setStyleSheet(""
+            "QWidget {background-color: #2E3440; color: #D8DEE9; font-size: 18px; font-family: Arial, sans-serif;}"
+            "QPushButton:hover {background-color: #81A1C1;}"
+            "QLabel {font-size: 20px; font-weight: bold;}"
+        "")
 
 class CreateComponentForm(QWidget):
     def __init__(self, parent):
@@ -77,13 +89,21 @@ class CreateComponentForm(QWidget):
         self.parent = parent
         form_layout = QVBoxLayout()
 
+        title_label = QLabel("Create New Component")
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold; text-align: center;")
+        form_layout.addWidget(title_label, alignment=Qt.AlignCenter)
+
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Component Name")
-        self.name_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 16px; padding: 5px; border-radius: 5px;")
+        self.name_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 20px; padding: 10px; border-radius: 5px;")
+        self.name_input.mousePressEvent = self.show_keyboard
 
         self.tray1_checkbox = QCheckBox("Tray 1")
+        self.tray1_checkbox.setStyleSheet("font-size: 22px; padding: 10px;")
         self.tray2_checkbox = QCheckBox("Tray 2")
+        self.tray2_checkbox.setStyleSheet("font-size: 22px; padding: 10px;")
         self.tray3_checkbox = QCheckBox("Tray 3")
+        self.tray3_checkbox.setStyleSheet("font-size: 22px; padding: 10px;")
 
         checkboxes_layout = QHBoxLayout()
         checkboxes_layout.addWidget(self.tray1_checkbox)
@@ -91,14 +111,28 @@ class CreateComponentForm(QWidget):
         checkboxes_layout.addWidget(self.tray3_checkbox)
 
         save_button = QPushButton("Save")
-        save_button.setStyleSheet("background-color: #5E81AC; color: white; font-size: 16px; border-radius: 10px;")
+        save_button.setFixedSize(300, 100)
+        save_button.setStyleSheet("background-color: #5E81AC; color: white; font-size: 22px; border-radius: 10px;")
         save_button.clicked.connect(self.save_component)
 
-        form_layout.addWidget(self.name_input)
+        form_layout.addWidget(self.name_input, alignment=Qt.AlignCenter)
         form_layout.addLayout(checkboxes_layout)
-        form_layout.addWidget(save_button)
+        form_layout.addWidget(save_button, alignment=Qt.AlignCenter)
 
         self.setLayout(form_layout)
+        self.apply_styles()
+    
+    def apply_styles(self):
+        self.setStyleSheet(""
+            "QWidget {background-color: #2E3440; color: #D8DEE9; font-size: 18px; font-family: Arial, sans-serif;}"
+            "QPushButton:hover {background-color: #81A1C1;}"
+            "QLabel {font-size: 20px; font-weight: bold;}"
+        "")
+    
+    def show_keyboard(self, event):
+        if not VirtualKeyboard.instance:
+            self.keyboard = VirtualKeyboard(self.parent.layout(), self.name_input)
+            self.parent.layout().addWidget(self.keyboard, alignment=Qt.AlignBottom)
 
     def save_component(self):
         name = self.name_input.text()
@@ -119,20 +153,33 @@ class NewAssemblyConfirmation(QWidget):
         self.components = components
 
         self.layout = QVBoxLayout()
-        self.layout.addWidget(QLabel("Confirm Your Assembly"))
-        self.layout.addWidget(QLabel("Select Tray Assignments"))
+
+        title_label = QLabel("Confirm Your Assembly")
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold; text-align: center;")
+        self.layout.addWidget(title_label, alignment=Qt.AlignCenter)
+
+        subtitle_label = QLabel("Select Tray Assignments")
+        subtitle_label.setStyleSheet("font-size: 20px; font-weight: bold; text-align: center;")
+        self.layout.addWidget(subtitle_label, alignment=Qt.AlignCenter)
         
         self.tray_selections = {}  # Store selected trays for each component
 
         for comp in components:
             component_label = QLabel(comp)
+            component_label.setStyleSheet("font-size: 20px;")
             self.layout.addWidget(component_label)
             
             # Get stored camera job availability
-            tray_options = ["None"]
+            tray_options = []
             component_data = next((item for item in self.main_window.new_assembly_step2.component_list.findItems(comp, Qt.MatchExactly)), None)
+
             if component_data:
                 camera_jobs = component_data.data(Qt.UserRole)
+                if camera_jobs is None:
+                    camera_jobs = (0, 0, 0)
+                
+                print(f"DEBUG: {comp} camera jobs -> {camera_jobs}")  # Debug statement to print tray availability
+
                 if camera_jobs[0]:
                     tray_options.append("Tray 1")
                 if camera_jobs[1]:
@@ -141,32 +188,62 @@ class NewAssemblyConfirmation(QWidget):
                     tray_options.append("Tray 3")
             
             tray_dropdown = QComboBox()
-            tray_dropdown.addItems(tray_options)
+            if tray_options:
+                tray_dropdown.addItems(tray_options)
+            else:
+                tray_dropdown.addItem("No available trays")
+                tray_dropdown.setEnabled(False)
+            
+            tray_dropdown.setStyleSheet("font-size: 18px; padding: 10px; border-radius: 5px;")
             self.tray_selections[comp] = tray_dropdown
             self.layout.addWidget(tray_dropdown)
 
         self.name_input = QLineEdit()
+        self.name_input.setFixedWidth(400)  # Increase width to fully display placeholder
         self.name_input.setPlaceholderText("Enter Assembly Name")
-        self.layout.addWidget(self.name_input)
+        self.name_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 20px; padding: 10px; border-radius: 5px;")
+        self.name_input.mousePressEvent = self.show_keyboard
+        self.layout.addWidget(self.name_input, alignment=Qt.AlignCenter)
 
+        button_layout = QHBoxLayout()
+        
         confirm_button = QPushButton("Confirm")
+        confirm_button.setFixedSize(300, 100)
+        confirm_button.setStyleSheet("background-color: #5E81AC; color: white; font-size: 22px; border-radius: 10px;")
         confirm_button.clicked.connect(self.save_assembly)
         
         back_button = QPushButton("Back")
+        back_button.setFixedSize(300, 100)
+        back_button.setStyleSheet("background-color: #BF616A; color: white; font-size: 22px; border-radius: 10px;")
         back_button.clicked.connect(lambda: main_window.set_screen(2))
         
-        self.layout.addWidget(confirm_button)
-        self.layout.addWidget(back_button)
+        button_layout.addWidget(confirm_button)
+        button_layout.addWidget(back_button)
+        self.layout.addLayout(button_layout)
+        
         self.setLayout(self.layout)
-
+        self.apply_styles()
+    
+    def apply_styles(self):
+        self.setStyleSheet(""
+            "QWidget {background-color: #2E3440; color: #D8DEE9; font-size: 18px; font-family: Arial, sans-serif;}"
+            "QPushButton:hover {background-color: #81A1C1;}"
+            "QLabel {font-size: 20px; font-weight: bold;}"
+        "")
+    
+    def show_keyboard(self, event):
+        if not VirtualKeyboard.instance:
+            self.keyboard = VirtualKeyboard(self.layout, self.name_input)
+            self.layout.addWidget(self.keyboard, alignment=Qt.AlignBottom)
+    
     def save_assembly(self):
         name = self.name_input.text()
         if name:
             tray_assignments = {"Tray 1": [], "Tray 2": [], "Tray 3": []}
             for comp in self.components:
                 selected_tray = self.tray_selections[comp].currentText()
-                if selected_tray != "None":
+                if "Tray" in selected_tray:
                     tray_assignments[selected_tray].append(comp)
             
-            add_assembly(name, tray_assignments["Tray 1"], tray_assignments["Tray 2"], tray_assignments["Tray 3"])  # Save tray-specific assignments
+            add_assembly(name, tray_assignments["Tray 1"], tray_assignments["Tray 2"], tray_assignments["Tray 3"])  
             self.main_window.set_screen(0)
