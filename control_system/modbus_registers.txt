@@ -1,0 +1,13 @@
+🟢 Cobot Registers:
+100 -> X Coordinate (mm * 100)
+101 -> Y Coordinate (mm * 100)
+102 -> R Rotation (° * 100)
+
+🟢 Vibratory Tray Registers:
+201 -> Tray 1 (1 = ON, 0 = OFF)
+202 -> Tray 2 (1 = ON, 0 = OFF)
+203 -> Tray 3 (1 = ON, 0 = OFF)
+
+🟢 Robot Status:
+300 -> Job Running (1 = Running, 0 = Stopped)
+301 -> Errors (1 = Error, 0 = OK)

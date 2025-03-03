@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QSpacerItem, QSizePolicy, QCheckBox, QMessageBox
 from PyQt5.QtCore import Qt, QTimer, QTime
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from database.db_manager import get_all_assemblies, get_assembly_details
 
 class SelectAssembly(QWidget):
@@ -169,20 +169,31 @@ class RunScreen(QWidget):
         self.completed_jobs = 0
         self.start_time = QTime.currentTime()
 
+        # Main layout
         layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
 
+        # Set background color
+        self.setStyleSheet("""
+            QWidget {background-color: #2E3440; color: #D8DEE9; font-family: Arial, sans-serif;}
+            QLabel {font-size: 24px; font-weight: bold;}
+            QPushButton {background-color: #5E81AC; color: white; font-size: 20px; border-radius: 10px; padding: 15px;}
+            QPushButton:hover {background-color: #81A1C1;}
+        """)
+
+        # Assembly Name Display
         title_label = QLabel(f"Current Assembly: {assembly_name}")
-        title_label.setStyleSheet("font-size: 24px; font-weight: bold; text-align: center;")
+        title_label.setFont(QFont("Arial", 24, QFont.Bold))
         layout.addWidget(title_label, alignment=Qt.AlignCenter)
 
-        # Display the ratio of completed jobs
+        # Job status label
         self.job_status_label = QLabel(f"Completed: {self.completed_jobs}/{self.total_jobs}")
-        self.job_status_label.setStyleSheet("font-size: 20px; color: white;")
+        self.job_status_label.setFont(QFont("Arial", 20))
         layout.addWidget(self.job_status_label, alignment=Qt.AlignCenter)
 
-        # Timer label
+        # Timer Label
         self.timer_label = QLabel("Time Elapsed: 00:00:00")
-        self.timer_label.setStyleSheet("font-size: 20px; color: white;")
+        self.timer_label.setFont(QFont("Arial", 20))
         layout.addWidget(self.timer_label, alignment=Qt.AlignCenter)
 
         # Timer to update elapsed time
@@ -190,29 +201,20 @@ class RunScreen(QWidget):
         self.timer.timeout.connect(self.update_timer)
         self.timer.start(1000)  # Update every second
 
-        # Home button for the robot
+        # Home Robot Button
         home_button = QPushButton("Home Robot")
-        home_button.setFixedSize(300, 80)
-        home_button.setStyleSheet("background-color: #5E81AC; color: white; font-size: 20px; border-radius: 10px;")
+        home_button.setFixedSize(400, 100)
         home_button.clicked.connect(self.home_robot)
         layout.addWidget(home_button, alignment=Qt.AlignCenter)
 
         self.setLayout(layout)
-        self.apply_styles()
-    
-    def apply_styles(self):
-        self.setStyleSheet(""
-            "QWidget {background-color: #2E3440; color: #D8DEE9; font-size: 18px; font-family: Arial, sans-serif;}"
-            "QPushButton:hover {background-color: #81A1C1;}"
-            "QLabel {font-size: 20px; font-weight: bold;}"
-        "")
-    
+
     def update_timer(self):
         elapsed = self.start_time.elapsed() // 1000  # Get elapsed time in seconds
         hours = elapsed // 3600
         minutes = (elapsed % 3600) // 60
         seconds = elapsed % 60
         self.timer_label.setText(f"Time Elapsed: {hours:02}:{minutes:02}:{seconds:02}")
-    
+
     def home_robot(self):
         print("Sending robot to home position...")  # Placeholder action
