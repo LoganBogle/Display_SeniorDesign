@@ -2,6 +2,11 @@ from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QListWidg
 from PyQt5.QtCore import Qt, QTimer, QTime
 from PyQt5.QtGui import QIcon, QFont
 from database.db_manager import get_all_assemblies, get_assembly_details
+import sys
+sys.path.append("../control_system")  # Ensure Python can find xarm_controller.py
+from control_system.xarm_controller import XArmController
+
+
 
 class SelectAssembly(QWidget):
     def __init__(self, main_window):
@@ -160,6 +165,8 @@ class TrayAssignmentScreen(QWidget):
         self.main_window.set_screen(self.main_window.stack.indexOf(self.main_window.run_screen))
 
 
+
+
 class RunScreen(QWidget):
     def __init__(self, main_window, assembly_name, total_jobs):
         super().__init__()
@@ -168,6 +175,9 @@ class RunScreen(QWidget):
         self.total_jobs = total_jobs
         self.completed_jobs = 0
         self.start_time = QTime.currentTime()
+
+        # Initialize xArm Controller
+        self.arm = XArmController()  
 
         # Main layout
         layout = QVBoxLayout()
@@ -217,4 +227,11 @@ class RunScreen(QWidget):
         self.timer_label.setText(f"Time Elapsed: {hours:02}:{minutes:02}:{seconds:02}")
 
     def home_robot(self):
-        print("Sending robot to home position...")  # Placeholder action
+        """Send the robot to its home position."""
+        print("Sending robot to home position...")
+        self.arm.move_to_home()
+
+    def closeEvent(self, event):
+        """Ensure xArm is disconnected when the GUI closes."""
+        self.arm.disconnect()
+        event.accept()
