@@ -1,61 +1,50 @@
 import socket
 import json
+import time
 
-# PLOC2D Camera Connection Details
-PLOC2D_IP = "192.168.1.242"  # Ensure this is the correct IP
-PLOC2D_PORT = 14158          # Make sure this matches the Native Protocol setting
+PLOC2D_IP = "192.168.1.242"
+PLOC2D_PORT = 14158
 
 def trigger_camera(job_id=3):
-    """Triggers the PLOC2D camera and waits for the full response."""
     try:
+        t_start = time.time()
         print(f"📡 Connecting to PLOC2D at {PLOC2D_IP}:{PLOC2D_PORT}...")
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)  # Keep timeout at 5s
+        sock.settimeout(3)
         sock.connect((PLOC2D_IP, PLOC2D_PORT))
-        print("✅ Connection to PLOC2D successful!")
+        print(f"✅ Connected at {time.time() - t_start:.3f} seconds")
 
-        # ✅ Send the JSON Command
         command_json = json.dumps({"name": "Run.Locate", "job": str(job_id)})
-        sock.sendall((command_json + "\n").encode())  # Ensure newline at end
-        print("📡 Command Sent to Camera:", command_json)
+        sock.sendall((command_json + "\n").encode())
+        print(f"📤 Command sent at {time.time() - t_start:.3f} seconds")
 
-        # ✅ Read Full Response in a Loop (to avoid truncation)
-        response = b""
-        while True:
-            try:
-                chunk = sock.recv(4096)  # Read in chunks
-                if not chunk:
-                    break
-                response += chunk
-            except socket.timeout:
-                print("⏳ Warning: Timeout while waiting for more data.")
-                break
-
-        response_decoded = response.decode()
-
-        # ✅ Debug: Print the raw received response
-        print("📩 Raw Camera Response:", response_decoded)
-
+        # ✅ Try to read full response (blocking, raw socket)
+        response = sock.recv(4096)
         sock.close()
 
-        # ✅ Attempt to parse JSON
-        try:
-            json_data = json.loads(response_decoded)
-            print("🎯 Parsed Camera Data:", json.dumps(json_data, indent=4))
-            return json_data
-        except json.JSONDecodeError:
-            print("⚠️ Error: Response was not valid JSON!")
+        t_end = time.time()
+        response_decoded = response.decode().strip()
+        print(f"📩 Response received at {t_end - t_start:.3f} seconds")
+        print("📄 Raw Camera Response:", response_decoded)
+
+        if not response_decoded:
+            print("❌ Camera Error: Empty response")
             return None
 
-    except socket.timeout:
-        print("❌ Camera Error: Timed Out - PLOC2D may not be sending data properly.")
-        return None
-    except ConnectionRefusedError:
-        print("❌ Error: Connection refused - Is Native Protocol enabled in PLOC2D?")
-        return None
-    except socket.gaierror:
-        print("❌ Error: Could not resolve IP address - Check your network settings.")
-        return None
+        json_data = json.loads(response_decoded)
+        print("✅ Parsed Response:", json_data)
+
+        return {
+            "x": json_data.get("x", 0.0),
+            "y": json_data.get("y", 0.0),
+            "z": json_data.get("z", 0.0),
+            "r1": json_data.get("r1", 0.0),
+            "r2": json_data.get("r2", 0.0),
+            "r3": json_data.get("r3", 0.0),
+            "score": json_data.get("score", 0.0),
+            "matches": json_data.get("matches", 0)
+        }
+
     except Exception as e:
         print(f"❌ Camera Error: {e}")
         return None

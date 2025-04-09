@@ -1,8 +1,6 @@
 import time
 from xarm.wrapper import XArmAPI
 from camera_handler import trigger_camera
-import math
-
 
 try:
     from control_system.config import XARM_IP  # If running from project root
@@ -101,56 +99,18 @@ if __name__ == "__main__":
     try:
         if arm.arm:  # Ensure arm is connected before running movements
             
-            
             # ✅ Move above Tray 1
-            #arm.move_to_position([470, 5, 425, 180, 0, 0])
-            # ✅ Move above Tray 2
+            #arm.move_to_position([470, 5, 250, 180, 0, 0])
+            #time.sleep(1)
+            # ✅ Move above Tray 2 (perfect camera location)
             arm.move_to_position([283, -225, 160, 180, 0, 0])
+
+            # ✅ Variable location changer
             
 
-            # ✅ Trigger the camera to take a picture
-            coordinates = trigger_camera(job_id=10)  # Call the function from camera_handler.py
-
-            # ✅ Print the results
-            if coordinates:
-                print("\n📸 **Camera Detection Results**")
-                print(f"📍 X: {coordinates['x']} mm")
-                print(f"📍 Y: {coordinates['y']} mm")
-                print(f"📍 Z: {coordinates['z']} mm")
-                print(f"🔄 Rotation 1 (Roll): {coordinates['r1']}°")
-                print(f"🔄 Rotation 2 (Pitch): {coordinates['r2']}°")
-                print(f"🔄 Rotation 3 (Yaw): {coordinates['r3']}°")
-                print(f"✅ Match Confidence: {coordinates['score']}%")
-                print(f"🔎 Total Matches Found: {coordinates['matches']}")
-
-                print("📦 Moving to part position")
-
-                # Normalize r3 if needed
-                if coordinates['r3'] > 90:
-                    coordinates['r3'] -= 180
-                if coordinates['r3'] < -90:
-                    coordinates['r3'] += 180
-
-                # Apply X/Y offset using r3
-                r3_rad = math.radians(coordinates['r3'])
-                offset = 0  # mm
-
-                x_adj = coordinates['x'] - offset * math.cos(r3_rad)
-                y_adj = coordinates['y'] - offset * math.sin(r3_rad)
-
-                # Move to the corrected position
-                arm.move_to_position([coordinates['x'], coordinates['y'], 95, 180, 0, coordinates['r3']])
-                time.sleep(3)
-                
-
-            
-            
-            
-            time.sleep(1)
-            
+            #arm.move_to_position([265, -225, 450, 180, 0, 0])
 
 
-            
         else:
             print("❌ xArm is not connected. Skipping movement tests.")
     finally:
