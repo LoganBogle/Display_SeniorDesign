@@ -105,11 +105,14 @@ if __name__ == "__main__":
             # ✅ Move above Tray 1
             #arm.move_to_position([470, 5, 425, 180, 0, 0])
             # ✅ Move above Tray 2
-            arm.move_to_position([283, -225, 160, 180, 0, 0])
+            #arm.move_to_position([283, -225, 160, 180, 0, 0])
+
+            # ✅ Move above Tray 3 (perfect camera location)
+            arm.move_to_position([273, -225, 320, 180, 0, 0])
             
 
             # ✅ Trigger the camera to take a picture
-            coordinates = trigger_camera(job_id=10)  # Call the function from camera_handler.py
+            coordinates = trigger_camera(job_id=14)  # Call the function from camera_handler.py
 
             # ✅ Print the results
             if coordinates:
@@ -125,12 +128,23 @@ if __name__ == "__main__":
 
                 print("📦 Moving to part position")
 
-                # Normalize r3 if needed
-                if coordinates['r3'] > 90:
-                    coordinates['r3'] -= 180
-                if coordinates['r3'] < -90:
-                    coordinates['r3'] += 180
+                # Normalize r3 for tray 2
+                #if coordinates['r3'] > 90:
+                    #coordinates['r3'] -= 180
+                #if coordinates['r3'] < -90:
+                    #coordinates['r3'] += 180
 
+                    # Normalize r3 for Tray 1
+                #if coordinates['r3'] > 110:
+                    #coordinates['r3'] -= 180
+                #if coordinates['r3'] < -70:
+                     #coordinates['r3'] += 180
+
+                # Normalize r3 for Tray 3
+                if coordinates['r3'] > 70:
+                    coordinates['r3'] -= 180
+                if coordinates['r3'] < -110:
+                     coordinates['r3'] += 180
                 # Apply X/Y offset using r3
                 r3_rad = math.radians(coordinates['r3'])
                 offset = 0  # mm
@@ -139,7 +153,7 @@ if __name__ == "__main__":
                 y_adj = coordinates['y'] - offset * math.sin(r3_rad)
 
                 # Move to the corrected position
-                arm.move_to_position([coordinates['x'], coordinates['y'], 95, 180, 0, coordinates['r3']])
+                arm.move_to_position([coordinates['x'], coordinates['y'], 225, 180, 0, coordinates['r3']])
                 time.sleep(3)
                 
 

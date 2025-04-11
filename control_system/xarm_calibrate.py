@@ -99,16 +99,20 @@ if __name__ == "__main__":
     try:
         if arm.arm:  # Ensure arm is connected before running movements
             
-            # ✅ Move above Tray 1
+            # ✅ Move above Tray 2
             #arm.move_to_position([470, 5, 250, 180, 0, 0])
             #time.sleep(1)
-            # ✅ Move above Tray 2 (perfect camera location)
-            arm.move_to_position([283, -225, 160, 180, 0, 0])
-
+            # ✅ Move above Tray 3 (perfect camera location)
+            arm.move_to_position([263, -225, 350, 180, 0, 0])
+            # ✅ Move above Tray 1 (perfect camera location)
+            #arm.move_to_position([260, 225, 350, 180, 0, 0])
             # ✅ Variable location changer
+
+            #For 3D Printed tray, use 223 as Z
+            #For provided tray tops, use 218.5 as Z
             
 
-            #arm.move_to_position([265, -225, 450, 180, 0, 0])
+            #arm.move_to_position([355.027, -217.549, 223, 180, 0, -87.714])
 
 
         else:
