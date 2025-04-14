@@ -6,132 +6,161 @@ from camera_handler import trigger_camera
 try:
     from control_system.config import XARM_IP  # If running from project root
 except ModuleNotFoundError:
-    from config import XARM_IP  # If running inside control_system
+    from config import XARM_IP  # If running from inside control_system
 
 class XArmController:
     def __init__(self):
-        """Initialize xArm connection and set up motion."""
-        try:
-            print("🔌 Attempting to connect to xArm...")
-            self.arm = XArmAPI(XARM_IP)
-            time.sleep(0.5)
-
-            if not self.arm.connected:
-                raise Exception("❌ xArm is not connected.")
-
-            self.initialize_arm()
-        except Exception as e:
-            print(f"❌ Error: {e}")
-            print("Skipping xArm initialization.")
-            self.arm = None
+        print("🔌 Attempting to connect to xArm...")
+        self.arm = XArmAPI(XARM_IP)
+        time.sleep(0.5)
+        if not self.arm.connected:
+            raise Exception("❌ xArm is not connected.")
+        self.initialize_arm()
 
     def initialize_arm(self):
-        """Clear errors, enable motion, and set control mode."""
-        if self.arm:
-            self.arm.clean_warn()
-            self.arm.clean_error()
-            self.arm.motion_enable(True)
-            self.arm.set_mode(0)  # Position Control Mode
-            self.arm.set_state(0)
+        self.arm.clean_warn()
+        self.arm.clean_error()
+        self.arm.motion_enable(True)
+        self.arm.set_mode(0)  # Position control mode
+        self.arm.set_state(0)
 
     def move_to_position(self, position, speed=100):
-        """Move xArm to a specific position."""
-        if self.arm:
-            x, y, z, roll, pitch, yaw = position
-            self.arm.set_position(x, y, z, roll, pitch, yaw, speed=speed, wait=True)
-            print(f"✅ Moved to Position: {position}")
-        else:
+        """Safe move: Raise Z first, move XY, then lower Z."""
+        if not self.arm:
             print("❌ Cannot move. xArm is not connected.")
+            return
+
+        x, y, z, roll, pitch, yaw = position
+
+        # Step 1: Get current position
+        _, current_pos = self.arm.get_position(is_radian=False)
+        if current_pos is None:
+            print("❌ Cannot get current arm position")
+            return
+
+        # Step 2: Raise Z to 350mm first if not already high
+        safe_z = 350  # mm
+        if current_pos[2] < safe_z:
+            print(f"⬆️ Raising Z to {safe_z}mm first...")
+            self.arm.set_position(x=current_pos[0], y=current_pos[1], z=safe_z,
+                                  roll=current_pos[3], pitch=current_pos[4], yaw=current_pos[5],
+                                  speed=speed, wait=True)
+
+        # Step 3: Move X and Y at safe Z
+        print("➡️ Moving XY at safe Z height...")
+        self.arm.set_position(x=x, y=y, z=safe_z,
+                              roll=roll, pitch=pitch, yaw=yaw,
+                              speed=speed, wait=True)
+
+        # Step 4: Lower Z to target
+        print(f"⬇️ Lowering Z down to {z}mm...")
+        self.arm.set_position(x=x, y=y, z=z,
+                              roll=roll, pitch=pitch, yaw=yaw,
+                              speed=speed, wait=True)
+
+        print(f"✅ Safe Move Completed to: {[x, y, z, roll, pitch, yaw]}")
 
     def pick(self):
-        """Close the gripper."""
-        if self.arm:
-            print("✅ Closing gripper (picking part)")
-            self.arm.set_gripper_position(800, wait=True)
-        else:
-            print("❌ Cannot pick. xArm is not connected.")
+        print("✅ Gripper Closed (Pick)")
 
     def place(self):
-        """Open the gripper."""
-        if self.arm:
-            print("✅ Opening gripper (placing part)")
-            self.arm.set_gripper_position(0, wait=True)
-        else:
-            print("❌ Cannot place. xArm is not connected.")
+        print("✅ Gripper Opened (Place)")
 
     def disconnect(self):
-        """Disconnect xArm."""
         if self.arm:
             self.arm.disconnect()
             print("✅ Disconnected from xArm")
 
+def normalize_r3(r3, tray_id):
+    if tray_id == 1:
+        if r3 > 110: r3 -= 180
+        if r3 < -70: r3 += 180
+    elif tray_id == 2:
+        if r3 > 90: r3 -= 180
+        if r3 < -90: r3 += 180
+    elif tray_id == 3:
+        if r3 > 70: r3 -= 180
+        if r3 < -110: r3 += 180
+    return r3
+
 if __name__ == "__main__":
     arm = XArmController()
 
+    trays = {
+        #1: {"position": [260, 215, 320, 180, 0, 0], "job_id": 12, "pickup_z": 218.5},
+        #2: {"position": [480, 5, 360, 180, 0, 0], "job_id": 13, "pickup_z": 225},
+        3: {"position": [263, -225, 350, 180, 0, 0], "job_id": 14, "pickup_z": 225},
+    }
+    dropoff_position = [300, 0, 145, 180, 0, 0]
+
+    NUM_LOOPS = 2  # <=== Change this to however many full tray loops you want.
+
     try:
-        if arm.arm:  # Ensure arm is connected
-            # --- Define Coordinates ---
-            trays = [
-                [470, 5, 425, 180, 0, 0],   # Tray 1 Position
-                [285, -250, 350, 180, 0, 0], # Tray 2 Position
-                [150, -300, 320, 180, 0, 0], # Tray 3 Position
-            ]
-            drop_off_location = [300, 200, 300, 180, 0, 0]  # Drop-off Position
+        if arm.arm:
+            for loop_num in range(NUM_LOOPS):
+                print(f"\n🔄 Starting Loop {loop_num+1} of {NUM_LOOPS}")
 
-            while True:  # 🔁 Infinite loop
-                for idx, tray_position in enumerate(trays, 1):
-                    print(f"\n🧺 Moving to Tray {idx}")
-                    arm.move_to_position(tray_position)
+                for tray_id, tray_info in trays.items():
+                    print(f"\n🧩 Working on Tray {tray_id}")
+                    arm.move_to_position(tray_info["position"])
+                    time.sleep(1)
 
-                    # ✅ Trigger the camera
-                    coordinates = trigger_camera(job_id=10)
+                    found_part = False
+                    feeder_attempts = 0
 
-                    if coordinates:
-                        print(f"📍 Part Detected: {coordinates}")
+                    while not found_part and feeder_attempts < 3:
+                        for attempt in range(3):
+                            coordinates = trigger_camera(job_id=tray_info["job_id"])
+                            time.sleep(1)
 
-                        # Normalize rotation
-                        if coordinates['r3'] > 90:
-                            coordinates['r3'] -= 180
-                        if coordinates['r3'] < -90:
-                            coordinates['r3'] += 180
+                            if (coordinates
+                                and coordinates.get("name") == "Run.Locate.Ok"
+                                and coordinates.get("matches", 0) > 0
+                                and not (coordinates.get("x") == 0.0 and coordinates.get("y") == 0.0)):
 
-                        # Apply offset if needed
-                        r3_rad = math.radians(coordinates['r3'])
-                        offset = 0  # (change if you have a gripper offset)
+                                print(f"📸 Coordinates received: {coordinates}")
 
-                        x_adj = coordinates['x'] - offset * math.cos(r3_rad)
-                        y_adj = coordinates['y'] - offset * math.sin(r3_rad)
+                                coordinates['r3'] = normalize_r3(coordinates['r3'], tray_id)
 
-                        # ✅ Move above part (hover)
-                        arm.move_to_position([x_adj, y_adj, 250, 180, 0, coordinates['r3']])
+                                r3_rad = math.radians(coordinates['r3'])
+                                offset = 0  # no offset right now
+                                x_adj = coordinates['x'] - offset * math.cos(r3_rad)
+                                y_adj = coordinates['y'] - offset * math.sin(r3_rad)
 
-                        time.sleep(1)  # Settle a little
-                        # ✅ Move down to part
-                        arm.move_to_position([x_adj, y_adj, 180, 180, 0, coordinates['r3']])
+                                # Move above the part
+                                arm.move_to_position([x_adj, y_adj, tray_info["pickup_z"], 180, 0, coordinates['r3']])
+                                time.sleep(1)
 
-                        # ✅ Pick part
-                        arm.pick()
+                                arm.pick()
+                                time.sleep(1)
 
-                        # ✅ Move up with part
-                        arm.move_to_position([x_adj, y_adj, 300, 180, 0, coordinates['r3']])
+                                arm.move_to_position(dropoff_position)
+                                time.sleep(1)
 
-                        # ✅ Move to drop-off location
-                        print("🚚 Moving to Drop-Off")
-                        arm.move_to_position(drop_off_location)
+                                arm.place()
+                                time.sleep(1)
 
-                        # ✅ Place part
-                        arm.place()
+                                found_part = True
+                                break
+                            else:
+                                print(f"❌ No valid coordinates on attempt {attempt + 1}")
+                                if attempt < 2:
+                                    print(f"🔔 Vibrating Tray {tray_id}... (simulate vibration)")
+                                    time.sleep(1)
 
-                        # ✅ Move up after placing
-                        arm.move_to_position([drop_off_location[0], drop_off_location[1], 400, 180, 0, 0])
-
-                    else:
-                        print(f"❌ No part detected at Tray {idx}, skipping to next tray.")
-
-                print("\n🔁 Restarting loop from Tray 1...")
+                        if not found_part:
+                            feeder_attempts += 1
+                            if feeder_attempts < 3:
+                                print(f"⚡ No part found after 3 tries. Feeder attempt {feeder_attempts}/3.")
+                                print(f"🚀 Feeder for Tray {tray_id} turned ON")
+                                time.sleep(2)  # simulate feeder run
+                                print(f"🛑 Feeder for Tray {tray_id} turned OFF")
+                            else:
+                                print(f"❌ No parts found after 3 feeder tries. Manual intervention required!")
+                                raise SystemExit("🚨 Stopping system. No parts found.")
 
         else:
-            print("❌ xArm is not connected. Skipping movement.")
+            print("❌ xArm is not connected. Exiting.")
 
     finally:
         arm.disconnect()

@@ -10,7 +10,7 @@ def trigger_camera(job_id=3):
         t_start = time.time()
         print(f"📡 Connecting to PLOC2D at {PLOC2D_IP}:{PLOC2D_PORT}...")
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(3)
+        sock.settimeout(10)
         sock.connect((PLOC2D_IP, PLOC2D_PORT))
         print(f"✅ Connected at {time.time() - t_start:.3f} seconds")
 
@@ -18,7 +18,6 @@ def trigger_camera(job_id=3):
         sock.sendall((command_json + "\n").encode())
         print(f"📤 Command sent at {time.time() - t_start:.3f} seconds")
 
-        # ✅ Try to read full response (blocking, raw socket)
         response = sock.recv(4096)
         sock.close()
 
@@ -35,6 +34,7 @@ def trigger_camera(job_id=3):
         print("✅ Parsed Response:", json_data)
 
         return {
+            "name": json_data.get("name", ""),
             "x": json_data.get("x", 0.0),
             "y": json_data.get("y", 0.0),
             "z": json_data.get("z", 0.0),

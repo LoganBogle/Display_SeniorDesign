@@ -100,15 +100,13 @@ if __name__ == "__main__":
     
     try:
         if arm.arm:  # Ensure arm is connected before running movements
-            
-            
             # ✅ Move above Tray 1
-            #arm.move_to_position([470, 5, 425, 180, 0, 0])
+            #arm.move_to_position([260, 225, 350, 180, 0, 0])
             # ✅ Move above Tray 2
-            #arm.move_to_position([283, -225, 160, 180, 0, 0])
+            #arm.move_to_position([480, 5, 360, 180, 0, 0])
 
             # ✅ Move above Tray 3 (perfect camera location)
-            arm.move_to_position([273, -225, 320, 180, 0, 0])
+            #arm.move_to_position([263, -225, 350, 180, 0, 0])
             
 
             # ✅ Trigger the camera to take a picture
