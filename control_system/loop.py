@@ -1,5 +1,6 @@
 import time
 import math
+import relay_api
 from xarm.wrapper import XArmAPI
 from camera_handler import trigger_camera
 
@@ -61,9 +62,11 @@ class XArmController:
         print(f"✅ Safe Move Completed to: {[x, y, z, roll, pitch, yaw]}")
 
     def pick(self):
+        relay_api.solenoid(1)
         print("✅ Gripper Closed (Pick)")
 
     def place(self):
+        relay_api.solenoid(0)
         print("✅ Gripper Opened (Place)")
 
     def disconnect(self):
@@ -146,15 +149,19 @@ if __name__ == "__main__":
                                 print(f"❌ No valid coordinates on attempt {attempt + 1}")
                                 if attempt < 2:
                                     print(f"🔔 Vibrating Tray {tray_id}... (simulate vibration)")
-                                    time.sleep(1)
+                                    relay_api.tray{tray_id}(1)
+                                    time.sleep(2)
+                                    relay_api.tray{tray_id}(0)
 
                         if not found_part:
                             feeder_attempts += 1
                             if feeder_attempts < 3:
                                 print(f"⚡ No part found after 3 tries. Feeder attempt {feeder_attempts}/3.")
                                 print(f"🚀 Feeder for Tray {tray_id} turned ON")
-                                time.sleep(2)  # simulate feeder run
+                                relay_api.feeder{tray_id}(1)
+                                time.sleep(3)  # simulate feeder run
                                 print(f"🛑 Feeder for Tray {tray_id} turned OFF")
+                                relay_api.feeder{tray_id}(0)
                             else:
                                 print(f"❌ No parts found after 3 feeder tries. Manual intervention required!")
                                 raise SystemExit("🚨 Stopping system. No parts found.")
