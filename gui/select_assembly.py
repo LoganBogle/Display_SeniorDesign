@@ -3,8 +3,10 @@ from PyQt5.QtCore import Qt, QTimer, QTime
 from PyQt5.QtGui import QIcon, QFont
 from database.db_manager import get_all_assemblies, get_assembly_details
 import sys
-sys.path.append("../control_system")  # Ensure Python can find xarm_controller.py
-from control_system.xarm_controller import XArmController
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'control_system')))
+from xarm_controller import run_pick_and_place
+import subprocess
 
 
 
@@ -159,10 +161,12 @@ class TrayAssignmentScreen(QWidget):
         self.start_main_run()
     
     def start_main_run(self):
-        print("Starting main run...")  # Placeholder for actual main run logic
-        self.main_window.run_screen = RunScreen(self.main_window, self.assembly_name, 100)  # Example: Replace 100 with actual total jobs
+        print("Starting main run...")
+        run_pick_and_place()
+        self.main_window.run_screen = RunScreen(self.main_window, self.assembly_name, 100)
         self.main_window.stack.addWidget(self.main_window.run_screen)
         self.main_window.set_screen(self.main_window.stack.indexOf(self.main_window.run_screen))
+
 
 
 

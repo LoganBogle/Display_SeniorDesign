@@ -80,8 +80,7 @@ def normalize_r3(r3, tray_id):
         if r3 < -110: r3 += 180
     return r3
 
-
-def run_pick_and_place():
+if __name__ == "__main__":
     arm = XArmController()
 
     trays = {
@@ -171,7 +170,3 @@ def run_pick_and_place():
 
     finally:
         arm.disconnect()
-
-if __name__ == "__main__":
-    run_pick_and_place()
-    
