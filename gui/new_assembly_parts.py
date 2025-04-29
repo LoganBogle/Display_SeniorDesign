@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QListWidget, QLineEdit, QCheckBox, QHBoxLayout, QComboBox, QListWidgetItem
 from database.db_manager import get_all_components, add_component, add_assembly
 from PyQt5.QtCore import Qt
+from PyQt5 import QtGui 
 from gui.virtual_keyboard import VirtualKeyboard
 
 class NewAssemblyStep2(QWidget):
@@ -93,42 +94,90 @@ class CreateComponentForm(QWidget):
         title_label.setStyleSheet("font-size: 24px; font-weight: bold; text-align: center;")
         form_layout.addWidget(title_label, alignment=Qt.AlignCenter)
 
+        # Name input
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Component Name")
+        self.name_input.setFixedWidth(400)
         self.name_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 20px; padding: 10px; border-radius: 5px;")
         self.name_input.mousePressEvent = self.show_keyboard
+        form_layout.addWidget(self.name_input, alignment=Qt.AlignCenter)
 
-        self.tray1_checkbox = QCheckBox("Tray 1")
-        self.tray1_checkbox.setStyleSheet("font-size: 22px; padding: 10px;")
-        self.tray2_checkbox = QCheckBox("Tray 2")
-        self.tray2_checkbox.setStyleSheet("font-size: 22px; padding: 10px;")
-        self.tray3_checkbox = QCheckBox("Tray 3")
-        self.tray3_checkbox.setStyleSheet("font-size: 22px; padding: 10px;")
+        # --- Locate Job IDs Row ---
+        locate_layout = QHBoxLayout()
 
-        checkboxes_layout = QHBoxLayout()
-        checkboxes_layout.addWidget(self.tray1_checkbox)
-        checkboxes_layout.addWidget(self.tray2_checkbox)
-        checkboxes_layout.addWidget(self.tray3_checkbox)
+        self.tray1_input = QLineEdit()
+        self.tray1_input.setPlaceholderText("Locate Tray 1")
+        self.tray1_input.setFixedWidth(240)
+        self.tray1_input.setValidator(QtGui.QIntValidator(0, 320))
+        self.tray1_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 18px; padding: 8px; border-radius: 5px;")
 
+        self.tray2_input = QLineEdit()
+        self.tray2_input.setPlaceholderText("Locate Tray 2")
+        self.tray2_input.setFixedWidth(240)
+        self.tray2_input.setValidator(QtGui.QIntValidator(0, 320))
+        self.tray2_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 18px; padding: 8px; border-radius: 5px;")
+
+        self.tray3_input = QLineEdit()
+        self.tray3_input.setPlaceholderText("Locate Tray 3")
+        self.tray3_input.setFixedWidth(240)
+        self.tray3_input.setValidator(QtGui.QIntValidator(0, 320))
+        self.tray3_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 18px; padding: 8px; border-radius: 5px;")
+
+        locate_layout.addWidget(self.tray1_input)
+        locate_layout.addWidget(self.tray2_input)
+        locate_layout.addWidget(self.tray3_input)
+
+        form_layout.addLayout(locate_layout)
+
+        # --- Count Job IDs Row ---
+        count_layout = QHBoxLayout()
+
+        self.count_tray1_input = QLineEdit()
+        self.count_tray1_input.setPlaceholderText("Count Tray 1")
+        self.count_tray1_input.setFixedWidth(240)
+        self.count_tray1_input.setValidator(QtGui.QIntValidator(0, 320))
+        self.count_tray1_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 18px; padding: 8px; border-radius: 5px;")
+
+        self.count_tray2_input = QLineEdit()
+        self.count_tray2_input.setPlaceholderText("Count Tray 2")
+        self.count_tray2_input.setFixedWidth(240)
+        self.count_tray2_input.setValidator(QtGui.QIntValidator(0, 320))
+        self.count_tray2_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 18px; padding: 8px; border-radius: 5px;")
+
+        self.count_tray3_input = QLineEdit()
+        self.count_tray3_input.setPlaceholderText("Count Tray 3")
+        self.count_tray3_input.setFixedWidth(240)
+        self.count_tray3_input.setValidator(QtGui.QIntValidator(0, 320))
+        self.count_tray3_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 18px; padding: 8px; border-radius: 5px;")
+
+        count_layout.addWidget(self.count_tray1_input)
+        count_layout.addWidget(self.count_tray2_input)
+        count_layout.addWidget(self.count_tray3_input)
+
+        form_layout.addLayout(count_layout)
+
+        # Shark Fin checkbox
+        self.shark_fin_checkbox = QCheckBox("Has Shark Fin")
+        self.shark_fin_checkbox.setStyleSheet("font-size: 22px; padding: 10px;")
+        form_layout.addWidget(self.shark_fin_checkbox, alignment=Qt.AlignCenter)
+
+        # Save button
         save_button = QPushButton("Save")
         save_button.setFixedSize(300, 100)
         save_button.setStyleSheet("background-color: #5E81AC; color: white; font-size: 22px; border-radius: 10px;")
         save_button.clicked.connect(self.save_component)
-
-        form_layout.addWidget(self.name_input, alignment=Qt.AlignCenter)
-        form_layout.addLayout(checkboxes_layout)
         form_layout.addWidget(save_button, alignment=Qt.AlignCenter)
 
         self.setLayout(form_layout)
         self.apply_styles()
-    
+
     def apply_styles(self):
-        self.setStyleSheet(""
-            "QWidget {background-color: #2E3440; color: #D8DEE9; font-size: 18px; font-family: Arial, sans-serif;}"
-            "QPushButton:hover {background-color: #81A1C1;}"
-            "QLabel {font-size: 20px; font-weight: bold;}"
-        "")
-    
+        self.setStyleSheet("""
+            QWidget {background-color: #2E3440; color: #D8DEE9; font-size: 18px; font-family: Arial, sans-serif;}
+            QPushButton:hover {background-color: #81A1C1;}
+            QLabel {font-size: 20px; font-weight: bold;}
+        """)
+
     def show_keyboard(self, event):
         if not VirtualKeyboard.instance:
             self.keyboard = VirtualKeyboard(self.parent.layout(), self.name_input)
@@ -136,14 +185,19 @@ class CreateComponentForm(QWidget):
 
     def save_component(self):
         name = self.name_input.text()
-        tray1 = 1 if self.tray1_checkbox.isChecked() else 0
-        tray2 = 1 if self.tray2_checkbox.isChecked() else 0
-        tray3 = 1 if self.tray3_checkbox.isChecked() else 0
-        
+        tray1 = int(self.tray1_input.text()) if self.tray1_input.text() else 0
+        tray2 = int(self.tray2_input.text()) if self.tray2_input.text() else 0
+        tray3 = int(self.tray3_input.text()) if self.tray3_input.text() else 0
+        count1 = int(self.count_tray1_input.text()) if self.count_tray1_input.text() else 0
+        count2 = int(self.count_tray2_input.text()) if self.count_tray2_input.text() else 0
+        count3 = int(self.count_tray3_input.text()) if self.count_tray3_input.text() else 0
+        shark_fin = 1 if self.shark_fin_checkbox.isChecked() else 0
+
         if name:
-            add_component(name, tray1, tray2, tray3)
+            add_component(name, tray1, tray2, tray3, count1, count2, count3, shark_fin)
             self.parent.load_components()
             self.setParent(None)
+
 
 
 class NewAssemblyConfirmation(QWidget):

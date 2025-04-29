@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QSpacerItem, QSizePolicy, QCheckBox, QMessageBox
+from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QListWidget, QHBoxLayout, QSpacerItem, QSizePolicy, QCheckBox, QMessageBox, QLineEdit
 from PyQt5.QtCore import Qt, QTimer, QTime
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtGui import QIcon, QFont, QIntValidator
 from database.db_manager import get_all_assemblies, get_assembly_details
 import sys
 import os
@@ -31,6 +31,7 @@ class SelectAssembly(QWidget):
         select_button.setFixedSize(300, 100)
         select_button.setStyleSheet("background-color: #5E81AC; color: white; border-radius: 10px; font-size: 16px;")
         select_button.clicked.connect(self.confirm_selection)
+
         
         back_button = QPushButton(" Back")
         back_button.setIcon(QIcon("icons/back.png"))
@@ -118,6 +119,14 @@ class TrayAssignmentScreen(QWidget):
         else:
             layout.addWidget(self.create_styled_label("No tray assignments found for this assembly."))
 
+                # Number of Assemblies Input
+        self.loop_input = QLineEdit()
+        self.loop_input.setPlaceholderText("Number of Assemblies to Run")
+        self.loop_input.setFixedWidth(300)
+        self.loop_input.setValidator(QIntValidator(1, 100))  # Accepts 1–100 only
+        self.loop_input.setStyleSheet("background-color: #4C566A; color: white; font-size: 20px; padding: 10px; border-radius: 5px;")
+        layout.addWidget(self.loop_input, alignment=Qt.AlignCenter)
+
         self.confirm_button = QPushButton("Confirm and Start Main Run")
         self.confirm_button.setFixedSize(400, 100)
         self.confirm_button.setStyleSheet("background-color: #5E81AC; color: white; font-size: 20px; border-radius: 10px;")
@@ -162,10 +171,18 @@ class TrayAssignmentScreen(QWidget):
     
     def start_main_run(self):
         print("Starting main run...")
-        run_pick_and_place()
-        self.main_window.run_screen = RunScreen(self.main_window, self.assembly_name, 100)
+
+        # Get number of loops from the input field, default to 1 if blank
+        loop_count = int(self.loop_input.text()) if self.loop_input.text() else 1
+
+        # Run the robot loop with user-defined loop count
+        run_pick_and_place(self.assembly_name, num_loops=loop_count)
+
+        # Launch the run screen showing correct loop count
+        self.main_window.run_screen = RunScreen(self.main_window, self.assembly_name, loop_count)
         self.main_window.stack.addWidget(self.main_window.run_screen)
         self.main_window.set_screen(self.main_window.stack.indexOf(self.main_window.run_screen))
+
 
 
 

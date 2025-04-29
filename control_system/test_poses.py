@@ -10,11 +10,9 @@ PLOC2D_PORT = 14158         # PLOC2D native protocol port
 
 # === Your 10 Real Calibration Poses ===
 calibration_poses = [
-    [470.0, 0.0, 425.0, 179.173356, 0.007792, 0.000286],
-    [449.87088, -88.761742, 447.335388, 167.938284, -4.841493, 54.039947],
-    [430.687408, -79.097176, 631.711243, 169.324957, -3.638167, 54.484276],
-    [295.98468, 6.206091, 543.015564, 178.774349, -20.122049, 0.779165],
-    [548.606812, 0.925445, 529.239319, 178.746044, 7.876222, 0.08348],
+    [190.598343, 110.542145, 231.6633, -176.164984, -32.461268, 21.860861],
+    [244.247787, 233.554504, 333.707001, -153.886093, 4.727074, -57.22055],
+    [393.256378, 297.791626, 326.018768, 157.938108, 29.836949, -0.372021]
 ]
 
 
@@ -67,7 +65,7 @@ def main():
         x, y, z, roll, pitch, yaw = pose
         arm.set_position(x, y, z, roll, pitch, yaw, speed=100, wait=True)
 
-        time.sleep(1.5)
+        time.sleep(3)
 
         # Capture and send pose immediately
         current_pose = arm.get_position(is_radian=False)
@@ -88,7 +86,7 @@ def main():
 
         # Wait after sending the pose
         print("🕒 Waiting 6 seconds for camera to process...")
-        time.sleep(6)
+        time.sleep(12)
 
     arm.disconnect()
     print("✅ Finished all calibration moves!")

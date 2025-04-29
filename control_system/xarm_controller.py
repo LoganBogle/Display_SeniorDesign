@@ -3,6 +3,7 @@ import math
 import relay_api
 from xarm.wrapper import XArmAPI
 from camera_handler import trigger_camera
+from database.db_manager import get_assembly_details, get_all_components
 
 try:
     from control_system.config import XARM_IP  # If running from project root
@@ -81,17 +82,92 @@ def normalize_r3(r3, tray_id):
     return r3
 
 
-def run_pick_and_place():
+def run_pick_and_place(assembly_name, num_loops=1):
+    print(f"Starting pick and place for assembly '{assembly_name}' with {num_loops} loops.")
+
     arm = XArmController()
 
-    trays = {
-        1: {"position": [270, 220, 320, 180, 0, 0], "job_id": 12, "pickup_z": 218, "job_idcount": 1},
-        #2: {"position": [480, 5, 360, 180, 0, 0], "job_id": 13, "pickup_z": 225, "job_idcount": 2},
-        #3: {"position": [263, -225, 350, 180, 0, 0], "job_id": 14, "pickup_z": 222.5, "job_idcount": 3},
+    shark_fin_positions = {
+    1: {"position": [260, 210, 320, 180, 0, 0], "pickup_z": 220},
+    2: {"position": [470, 10, 360, 180, 0, 0], "pickup_z": 227},
+    3: {"position": [255, -230, 350, 180, 0, 0], "pickup_z": 225},
     }
 
+    # Get the assembly tray assignments
+    assembly_details = get_assembly_details(assembly_name)
+    tray1_names = assembly_details[1].split(',') if assembly_details[1] else []
+    tray2_names = assembly_details[2].split(',') if assembly_details[2] else []
+    tray3_names = assembly_details[3].split(',') if assembly_details[3] else []
+
+    # Load all components once
+    all_components = get_all_components()
+    component_dict = {comp[1]: comp for comp in all_components}
+
+    trays = {}
+
+    if tray1_names:
+        comp = component_dict[tray1_names[0]]
+        shark_fin = comp[8]
+        if shark_fin:
+            trays[1] = {
+                "position": shark_fin_positions[1]["position"],
+                "pickup_z": shark_fin_positions[1]["pickup_z"],
+                "job_id": comp[2],
+                "job_idcount": comp[5],
+                "shark_fin": shark_fin
+            }
+        else:
+            trays[1] = {
+                "position": [270, 220, 320, 180, 0, 0],
+                "pickup_z": 218,
+                "job_id": comp[2],
+                "job_idcount": comp[5],
+                "shark_fin": shark_fin
+            }
+
+    if tray2_names:
+        comp = component_dict[tray2_names[0]]
+        shark_fin = comp[8]
+        if shark_fin:
+            trays[2] = {
+                "position": shark_fin_positions[2]["position"],
+                "pickup_z": shark_fin_positions[2]["pickup_z"],
+                "job_id": comp[3],
+                "job_idcount": comp[6],
+                "shark_fin": shark_fin
+            }
+        else:
+            trays[2] = {
+                "position": [480, 5, 360, 180, 0, 0],
+                "pickup_z": 225,
+                "job_id": comp[3],
+                "job_idcount": comp[6],
+                "shark_fin": shark_fin
+            }
+
+    if tray3_names:
+        comp = component_dict[tray3_names[0]]
+        shark_fin = comp[8]
+        if shark_fin:
+            trays[3] = {
+                "position": shark_fin_positions[3]["position"],
+                "pickup_z": shark_fin_positions[3]["pickup_z"],
+                "job_id": comp[4],
+                "job_idcount": comp[7],
+                "shark_fin": shark_fin
+            }
+        else:
+            trays[3] = {
+                "position": [263, -225, 350, 180, 0, 0],
+                "pickup_z": 222.5,
+                "job_id": comp[4],
+                "job_idcount": comp[7],
+                "shark_fin": shark_fin
+            }
+
+
     dropoff_position = [300, 0, 155, 180, 0, 0]
-    NUM_LOOPS = 2
+    NUM_LOOPS = num_loops
 
     try:
         if arm.arm:

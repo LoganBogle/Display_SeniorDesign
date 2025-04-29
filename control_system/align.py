@@ -11,7 +11,7 @@ PLOC2D_IP = "192.168.1.242"
 PLOC2D_PORT = 14158
 
 # === Update this: the index of the work plane you want to align ===
-WORKPLANE_INDEX = 1  # Change this to the work plane you're aligning
+WORKPLANE_INDEX = 3  # Change this to the work plane you're aligning
 
 def get_robot_pose():
     """Get the current Cartesian pose from the xArm."""
