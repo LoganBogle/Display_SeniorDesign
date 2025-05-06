@@ -84,12 +84,12 @@ if __name__ == "__main__":
     arm = XArmController()
 
     trays = {
-        #1: {"position": [270, 220, 320, 180, 0, 0], "job_id": 12, "pickup_z": 218, "job_idcount": 1},
-        2: {"position": [515, -5, 360, 180, 0, 0], "job_id": 18, "pickup_z": 257.6, "job_idcount": 2},
-        #3: {"position": [263, -225, 350, 180, 0, 0], "job_id": 14, "pickup_z": 222.5, "job_idcount": 3},
+        1: {"position": [270, 220, 320, 180, 0, 0], "job_id": 12, "pickup_z": 248.2,"job_idcount": 1},
+        2: {"position": [515, -5, 360, 180, 0, 0], "job_id": 13, "pickup_z": 261.3, "job_idcount": 2},
+        3: {"position": [263, -225, 350, 180, 0, 0], "job_id": 14, "pickup_z": 258.9, "job_idcount": 3},
     }
 
-    dropoff_position = [300, 0, 155, 180, 0, 0]
+    dropoff_position = [300, 0, 220, 180, 0, 0]
     NUM_LOOPS = 2
 
     try:

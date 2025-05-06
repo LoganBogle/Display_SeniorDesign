@@ -104,14 +104,14 @@ if __name__ == "__main__":
             # ✅ Move above Tray 2
             #arm.move_to_position([515, -5, 360, 180, 0, 0])
             # ✅ Move above Tray 3 (perfect camera location)
-            #arm.move_to_position([263, -225, 350, 180, 0, 0])
+            arm.move_to_position([263, -225, 350, 180, 0, 0])
             # ✅ Variable location changer
 
             #For 3D Printed tray, use 223 as Z
             #For provided tray tops, use 218.5 as Z
             
 
-            arm.move_to_position([332.5, -171.1, 260, 180, 0, 91.9])
+            #arm.move_to_position([332.5, -171.1, 260, 180, 0, 91.9])
 
 
         else:
